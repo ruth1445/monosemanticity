@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXPLORING INTERPRETABILITY</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f0e7d5; --panel:#f5eee0; --ink:#16141b;
+    --red:#e3242f; --maroon:#8c2033; --blue:#3961c6; --yellow:#eda211;
+    --green:#23784f; --pink:#e995ad; --muted:#6d675a;
+    --disp:'Clash Display','Arial Black',sans-serif;
+    --body:'General Sans',system-ui,sans-serif;
+    --mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.65;}
+  ::selection{background:rgba(227,36,47,.22);}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  .topbar{display:flex; justify-content:space-between; align-items:baseline; padding:26px 0 18px;}
+  .topbar .mark{font-family:var(--disp); font-weight:700; font-size:1.05rem; letter-spacing:.06em; text-transform:uppercase;}
+  .topbar .mark i{color:var(--red); font-style:normal;}
+  .topbar nav{font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; color:var(--muted); display:flex; gap:26px;}
+  .topbar nav a{color:inherit; text-decoration:none;}
+  .topbar nav a:hover{color:var(--blue);}
+  .blackrule{height:3px; background:var(--ink);}
+
+  .meta{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:16px 0 14px; border-bottom:1px solid #d6cdb8;}
+  .meta div{font-family:var(--mono);}
+  .meta .k{font-size:.62rem; letter-spacing:.22em; color:var(--muted); text-transform:uppercase; display:block;}
+  .meta .v{font-size:.86rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;}
+  .meta .v.red{color:var(--red);}
+  @media(max-width:720px){.meta{grid-template-columns:1fr 1fr;}}
+
+  .banner{margin-top:26px; border:3px solid var(--ink); background:var(--panel); overflow:hidden; line-height:0;}
+  .banner svg{width:100%; height:auto;}
+
+  .masthead{padding:7vh 0 4vh; max-width:920px;}
+  .kicker{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--blue); margin-bottom:22px;}
+  h1{font-family:var(--disp); font-weight:700; text-transform:uppercase; font-size:clamp(2.7rem,7.6vw,5.6rem); line-height:.96; letter-spacing:-0.015em;}
+  h1 .o{color:var(--paper); -webkit-text-stroke:2.5px var(--ink); paint-order:stroke;}
+  .lede{margin-top:26px; font-size:1.12rem; max-width:660px; color:#3a362c;}
+  .lede em{color:var(--red); font-style:italic; font-weight:500;}
+
+  /* ---------- paths ---------- */
+  .pathshead{display:flex; align-items:center; gap:16px; margin:5vh 0 24px;}
+  .pathshead .t{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.26em; text-transform:uppercase;}
+  .pathshead::after{content:""; flex:1; height:3px; background:var(--ink);}
+  .paths{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:10vh;}
+  @media(max-width:760px){.paths{grid-template-columns:1fr;}}
+  .path{border:3px solid var(--ink); background:var(--panel); text-decoration:none; color:var(--ink); display:flex; flex-direction:column; transition:transform .16s ease, box-shadow .16s ease; position:relative;}
+  a.path:hover{transform:translate(-4px,-4px); box-shadow:6px 6px 0 var(--ink);}
+  .path .band{height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 18px; border-bottom:3px solid var(--ink);}
+  .path .band .no{font-family:var(--disp); font-weight:700; font-size:1.7rem; color:#fdf8ec;}
+  .path .band .status{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; background:var(--ink); color:var(--paper); padding:5px 10px;}
+  .path .body{padding:20px 18px 22px; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .path h3{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:1.45rem; line-height:1.05;}
+  .path p{font-size:.92rem; color:#3a362c;}
+  .path .go{margin-top:auto; font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase;}
+  .path .go .arr{color:var(--red);}
+  .path.soon{opacity:.85;}
+  .path.soon .go{color:var(--muted);}
+
+  footer{border-top:3px solid var(--ink); padding:26px 0 10vh; font-family:var(--mono); font-size:.72rem; color:var(--muted); line-height:2;}
+  footer a{color:var(--blue); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════════════════════════
+  ✏️  EDITING THIS PAGE
+  All visible text is plain HTML below — search for the exact words
+  you see on the page and rewrite them. Safe to edit freely.
+  Path cards: each one is a block starting with <a class="path"> or
+  <div class="path soon">. To go live with a new path, change the
+  <div> to <a class="path" href="yourfile.html"> and update status.
+  Pattern banner → seed / colors in the <script> at the bottom.
+  Colors & fonts → the :root block at the top of <style>.
+═══════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="mark">Exploring Interpretability<i>.</i></div>
+    <nav><a href="#paths">Paths</a><a href="#colophon">About</a></nav>
+  </div>
+  <div class="blackrule"></div>
+  <div class="meta">
+    <div><span class="k">Edition</span><span class="v red">No. 001</span></div>
+    <div><span class="k">Source</span><span class="v">Anthropic papers '22–'24</span></div>
+    <div><span class="k">Format</span><span class="v">Interactive scenes</span></div>
+    <div><span class="k">Paths</span><span class="v">04</span></div>
+  </div>
+
+  <div class="banner"><svg id="hero" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="striped generative pattern"></svg></div>
+
+  <header class="masthead">
+    <div class="kicker">How to read a machine's mind</div>
+    <h1>Exploring<br><span class="o">Interpretability</span></h1>
+    <p class="lede">Language models work — and nobody fully knows why. These are visual, interactive walks through the research that's changing that: Anthropic's superposition and monosemanticity papers, rebuilt as things you can drag, hover, and steer. <em>Pick a path. Each one stands alone.</em></p>
+  </header>
+
+  <div class="pathshead" id="paths"><span class="t">Choose your path</span></div>
+  <div class="paths">
+
+    <a class="path" href="latent-space.html">
+      <div class="band" style="background:var(--blue)">
+        <span class="no">01</span><span class="status">● Live</span>
+      </div>
+      <div class="body">
+        <h3>Visualizing Latent Space</h3>
+        <p>The basics, geometrically. A model's mental state is a point in a vast space — spin the space, watch thoughts cluster, learn why direction means meaning.</p>
+        <span class="go"><span class="arr">→</span> Enter the space</span>
+      </div>
+    </a>
+
+    <div class="path soon">
+      <div class="band" style="background:var(--red)">
+        <span class="no">02</span><span class="status">In the works</span>
+      </div>
+      <div class="body">
+        <h3>Superposition</h3>
+        <p>The model has more concepts than neurons, so it cheats — cramming features into overlapping directions. Watch five features fight for two dimensions.</p>
+        <span class="go">Coming next</span>
+      </div>
+    </div>
+
+    <div class="path soon">
+      <div class="band" style="background:var(--green)">
+        <span class="no">03</span><span class="status">In the works</span>
+      </div>
+      <div class="body">
+        <h3>Monosemanticity</h3>
+        <p>The untangling. How sparse autoencoders pull clean, single-meaning features out of the mess — from a 512-neuron toy to 34 million features in Claude 3 Sonnet.</p>
+        <span class="go">Coming soon</span>
+      </div>
+    </div>
+
+    <div class="path soon">
+      <div class="band" style="background:var(--yellow)">
+        <span class="no">04</span><span class="status">In the works</span>
+      </div>
+      <div class="body">
+        <h3>Steering &amp; Safety</h3>
+        <p>Features are handles, not just labels. Clamp one and the model becomes the Golden Gate Bridge — then see why the same trick matters for deception and bias.</p>
+        <span class="go">Coming soon</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer id="colophon">
+    <p>Built on: <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a> (2022) · <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity</a> (2023) · <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">Scaling Monosemanticity</a> (2024)</p>
+    <p>A study project — examples paraphrased for teaching. Pattern generated in-page; palette drawn from the cover artwork.</p>
+  </footer>
+
+</div>
+
+<script>
+/* striped-pixel hero pattern — vertical stripes with checker/pixel interruptions */
+(() => {
+  const svg = document.getElementById('hero');
+  const U = 12;                 // grid unit
+  const COLS = 88, ROWS = 26;   // ~3.4:1 banner
+  svg.setAttribute('viewBox', `0 0 ${COLS*U} ${ROWS*U}`);
+  const PAL = ['#e3242f','#8c2033','#3961c6','#eda211','#23784f','#e995ad','#16141b','#f0e7d5','#5b86d6'];
+  const WEIGHT = [ .16, .08, .15, .12, .11, .10, .16, .09, .03];
+  let seed = 20260705;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function wpick(){
+    let r = rnd(), acc = 0;
+    for (let i = 0; i < PAL.length; i++){ acc += WEIGHT[i]; if (r < acc) return PAL[i]; }
+    return PAL[0];
+  }
+  let h = `<rect width="${COLS*U}" height="${ROWS*U}" fill="#f0e7d5"/>`;
+
+  /* 1 — vertical stripes of varying width, broken into 1–3 segments */
+  let c = 0;
+  while (c < COLS) {
+    const w = 1 + Math.floor(rnd()*3);            // 1–3 units wide
+    const nseg = rnd() < .55 ? 1 : (rnd() < .7 ? 2 : 3);
+    let row = 0;
+    // some stripes start lower / end higher (ragged top & bottom like the artwork)
+    const top = rnd() < .25 ? Math.floor(rnd()*6) : 0;
+    const bot = rnd() < .25 ? ROWS - Math.floor(rnd()*6) : ROWS;
+    row = top;
+    for (let s = 0; s < nseg && row < bot; s++) {
+      const segEnd = (s === nseg-1) ? bot : Math.min(bot, row + 4 + Math.floor(rnd()*(ROWS/nseg)));
+      h += `<rect x="${c*U}" y="${row*U}" width="${Math.min(w, COLS-c)*U}" height="${(segEnd-row)*U}" fill="${wpick()}"/>`;
+      row = segEnd;
+    }
+    c += w;
+  }
+
+  /* 2 — checkerboard + pixel-noise patches, clustered near the top */
+  const patches = 7;
+  for (let p = 0; p < patches; p++) {
+    const pw = 6 + Math.floor(rnd()*12), ph = 2 + Math.floor(rnd()*4);
+    const px = Math.floor(rnd()*(COLS-pw));
+    const py = rnd() < .7 ? Math.floor(rnd()*5) : Math.floor(rnd()*(ROWS-ph));
+    const checker = rnd() < .5;
+    const cA = checker ? '#16141b' : wpick(), cB = '#f0e7d5';
+    for (let i = 0; i < pw; i++) for (let j = 0; j < ph; j++) {
+      let f;
+      if (checker) f = (i+j) % 2 ? cA : cB;
+      else { if (rnd() < .3) continue; f = wpick(); }
+      h += `<rect x="${(px+i)*U}" y="${(py+j)*U}" width="${U}" height="${U}" fill="${f}"/>`;
+    }
+  }
+
+  /* 3 — sparse single-pixel accents */
+  for (let i = 0; i < 60; i++) {
+    if (rnd() < .5) continue;
+    h += `<rect x="${Math.floor(rnd()*COLS)*U}" y="${Math.floor(rnd()*ROWS)*U}" width="${U}" height="${U}" fill="${wpick()}"/>`;
+  }
+  svg.innerHTML = h;
+})();
+</script>
+</body>
+</html>

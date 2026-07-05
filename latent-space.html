@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISUALIZING LATENT SPACE — Path 01</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f0e7d5; --panel:#f5eee0; --ink:#16141b;
+    --red:#e3242f; --maroon:#8c2033; --blue:#3961c6; --yellow:#eda211;
+    --green:#23784f; --pink:#e995ad;
+    --muted:#6d675a;
+    --disp:'Clash Display','Arial Black',sans-serif;
+    --body:'General Sans',system-ui,sans-serif;
+    --mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.65;}
+  ::selection{background:rgba(227,36,47,.22);}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- topbar ---------- */
+  .topbar{display:flex; justify-content:space-between; align-items:baseline; padding:26px 0 18px; gap:14px; flex-wrap:wrap;}
+  .topbar .mark{font-family:var(--disp); font-weight:700; font-size:1.05rem; letter-spacing:.06em; text-transform:uppercase;}
+  .topbar .mark i{color:var(--red); font-style:normal;}
+  .topbar nav{font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; color:var(--muted); display:flex; gap:18px; flex-wrap:wrap;}
+  .topbar nav a{color:inherit; text-decoration:none; text-transform:uppercase;}
+  .topbar nav a:hover{color:var(--blue);}
+  .blackrule{height:3px; background:var(--ink);}
+
+  /* ---------- meta strip ---------- */
+  .meta{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:16px 0 14px; border-bottom:1px solid #d8d2c2;}
+  .meta div{font-family:var(--mono);}
+  .meta .k{font-size:.62rem; letter-spacing:.22em; color:var(--muted); text-transform:uppercase; display:block;}
+  .meta .v{font-size:.86rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;}
+  .meta .v.red{color:var(--red);}
+  @media(max-width:720px){.meta{grid-template-columns:1fr 1fr;}}
+
+  /* ---------- pattern banner ---------- */
+  .banner{margin-top:26px; border:2.5px solid var(--ink); background:var(--panel); overflow:hidden;}
+  .banner svg{display:block; width:100%; height:auto;}
+
+  /* ---------- masthead ---------- */
+  .masthead{padding:7vh 0 5vh; max-width:860px;}
+  .kicker{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--blue); margin-bottom:22px;}
+  h1{font-family:var(--disp); font-weight:700; text-transform:uppercase; font-size:clamp(2.6rem,7.2vw,5.2rem); line-height:.98; letter-spacing:-0.015em;}
+  h1 .o{color:var(--paper); -webkit-text-stroke:2px var(--ink); paint-order:stroke;}
+  .lede{margin-top:26px; font-size:1.12rem; max-width:640px; color:#3c3830;}
+  .lede em{color:var(--red); font-style:italic; font-weight:500;}
+
+  /* ---------- scenes ---------- */
+  .scene{padding:5vh 0 4vh;}
+  .scenebar{display:flex; align-items:center; gap:16px; margin-bottom:18px;}
+  .scenebar .no{font-family:var(--disp); font-weight:700; font-size:.95rem; background:var(--ink); color:var(--paper); padding:6px 14px; letter-spacing:.08em;}
+  .scenebar .t{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted);}
+  .scenebar::after{content:""; flex:1; height:1px; background:#d8d2c2;}
+  .scene h2{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:clamp(1.5rem,3.4vw,2.2rem); line-height:1.05; margin-bottom:14px; max-width:700px;}
+  .scene-intro{max-width:680px; margin-bottom:26px; color:#3c3830;}
+  .scene-intro b{font-weight:600; color:var(--ink);}
+  .scene-intro p + p{margin-top:10px;}
+
+  .stage{position:relative; border:2.5px solid var(--ink); background:var(--panel);}
+  canvas.cloudcv{display:block; width:100%; cursor:grab; touch-action:none;}
+  canvas.cloudcv.dragging{cursor:grabbing;}
+  #cloud{height:min(72vh,660px);}
+  #cloud2{height:min(60vh,520px);}
+  .stage .hint{position:absolute; top:14px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:.64rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--paper); background:var(--ink); padding:7px 16px; pointer-events:none; transition:opacity .8s; white-space:nowrap;}
+  .stage .hint.gone{opacity:0;}
+  .tipbox{position:absolute; pointer-events:none; background:var(--ink); color:#f0e7d5; font-family:var(--mono); font-size:.72rem; line-height:1.5; padding:10px 13px; max-width:250px; opacity:0; transition:opacity .15s; z-index:5;}
+  .tipbox .tcl{display:block; font-size:.58rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:3px;}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 20px; justify-content:center; padding:14px 16px; border-top:2.5px solid var(--ink); background:var(--paper);}
+  .legend span{font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#3c3830; display:flex; align-items:center; gap:8px;}
+  .legend i{width:10px; height:10px; display:inline-block;}
+
+  .note{max-width:640px; margin:4vh auto 0; text-align:center; color:var(--muted); font-size:.95rem;}
+  .note em{color:var(--ink); font-style:normal; box-shadow:inset 0 -8px 0 rgba(237,162,17,.45);}
+
+  /* ---------- aside (shadow) ---------- */
+  .aside{margin:6vh 0 0; border:2.5px solid var(--ink); background:var(--ink); color:#f0e7d5; display:grid; grid-template-columns:300px 1fr; align-items:center;}
+  @media(max-width:720px){.aside{grid-template-columns:1fr;}}
+  .aside canvas{display:block; width:300px; height:240px; max-width:100%; margin:0 auto;}
+  .aside .txt{padding:26px 28px;}
+  .aside .atag{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.26em; text-transform:uppercase; color:var(--yellow); margin-bottom:10px;}
+  .aside h3{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:1.3rem; margin-bottom:8px;}
+  .aside p{font-size:.92rem; color:#d9d0bd;}
+
+  /* ---------- controls ---------- */
+  .pickrow{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px;}
+  .btn{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.06em; background:var(--panel); color:var(--ink); border:2px solid var(--ink); padding:9px 14px; cursor:pointer; transition:all .12s;}
+  .btn:hover{background:var(--yellow);}
+  .btn.active{background:var(--ink); color:var(--paper);}
+  .btn .hl{color:var(--red);} .btn.active .hl{color:var(--yellow);}
+  input[type=range]{-webkit-appearance:none; appearance:none; width:100%; max-width:300px; height:4px; background:var(--ink); outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:0; background:var(--red); border:2.5px solid var(--ink); cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:20px; height:20px; border-radius:0; background:var(--red); border:2.5px solid var(--ink); cursor:pointer;}
+  .ctl{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:12px 0;}
+  .ctl label{font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; min-width:104px;}
+  .readout{font-family:var(--mono); font-size:.74rem; background:var(--ink); color:var(--paper); padding:6px 12px;}
+
+  /* ---------- scene 02 extras ---------- */
+  .nnpanel{border-top:2.5px solid var(--ink); background:var(--paper); padding:16px 18px; min-height:86px;}
+  .nnpanel .nk{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .nnpanel .nn{font-family:var(--mono); font-size:.76rem; line-height:1.9;}
+  .nnpanel .nn b{color:var(--blue); font-weight:700;}
+
+  /* ---------- svg panels (scenes 03–05) ---------- */
+  .panel2{display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch;}
+  @media(max-width:820px){.panel2{grid-template-columns:1fr;}}
+  .svgcard{border:2.5px solid var(--ink); background:var(--panel); padding:18px;}
+  .svgcard .ptag{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;}
+  .svgcard svg{display:block; width:100%; height:auto;}
+  .svgcard svg text{font-family:'Space Mono',monospace;}
+  .morphbox{font-family:var(--mono); font-size:.9rem; background:var(--paper); border:2px solid var(--ink); padding:14px 16px; margin-top:14px; min-height:56px;}
+
+  /* ---------- scene 04 mixer ---------- */
+  .mixer{display:grid; grid-template-columns:minmax(240px,1fr) 1.3fr; gap:22px; border:2.5px solid var(--ink); background:var(--panel); padding:22px;}
+  @media(max-width:820px){.mixer{grid-template-columns:1fr;}}
+  .mixer .sliders label{display:block; min-width:0; margin-bottom:4px;}
+  .mixer .sliders .srow{margin-bottom:18px;}
+  .mixout{border:2px solid var(--ink); background:var(--paper); padding:16px 18px;}
+  .mixout .ok{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted);}
+  .mixout .otext{font-family:var(--mono); font-size:1rem; margin:10px 0 14px; min-height:52px;}
+  .vbars{display:flex; gap:10px; align-items:flex-end; height:70px;}
+  .vbars .vb{flex:1; display:flex; flex-direction:column; justify-content:flex-end;}
+  .vbars .vb i{display:block; width:100%; transition:height .15s;}
+  .vbars .vb span{font-family:var(--mono); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; text-align:center; margin-top:6px; color:var(--muted);}
+
+  /* ---------- CTA ---------- */
+  .cta{margin:8vh 0 0; border-top:3px solid var(--ink); padding:30px 0 12vh; display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:720px){.cta{grid-template-columns:1fr;}}
+  .cta a{border:3px solid var(--ink); background:var(--panel); padding:20px; text-decoration:none; color:var(--ink); transition:transform .16s, box-shadow .16s;}
+  .cta a:hover{transform:translate(-4px,-4px); box-shadow:6px 6px 0 var(--ink);}
+  .cta .ck{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:8px;}
+  .cta .ct{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:1.25rem;}
+  .cta .cd{font-family:var(--mono); font-size:.7rem; color:var(--muted); display:block; margin-top:8px;}
+
+  footer{padding:0 0 8vh; font-family:var(--mono); font-size:.7rem; color:var(--muted); line-height:2;}
+  footer a{color:var(--blue); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════════════════════════
+  ✏️  EDITING THIS PAGE
+  All visible text is plain HTML below — search for the exact words
+  you see on the page and rewrite them. Safe to edit freely.
+  Exceptions that live in the <script> at the bottom:
+   · cluster names + hover snippets → the CLUSTERS list
+   · scene 02 droppable sentences → the DROPS list
+   · scene 03 analogies → the ANALOGIES list; French morph → MORPH
+   · scene 04 blend sentences → the COMBOS list
+   · the pattern banner → seed / colors in the banner section
+  Colors & fonts → the :root block at the top of <style>.
+═══════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="topbar">
+    <div class="mark">Exploring Interpretability<i>.</i></div>
+    <nav>
+      <a href="index.html">← All paths</a>
+      <a href="#s1">01 Points</a>
+      <a href="#s2">02 Distance</a>
+      <a href="#s3">03 Directions</a>
+      <a href="#s4">04 Concepts</a>
+      <a href="#s5">05 The catch</a>
+    </nav>
+  </div>
+  <div class="blackrule"></div>
+  <div class="meta">
+    <div><span class="k">Path</span><span class="v red">No. 01</span></div>
+    <div><span class="k">Series</span><span class="v">Exploring Interpretability</span></div>
+    <div><span class="k">Subject</span><span class="v">Latent Space</span></div>
+    <div><span class="k">Read</span><span class="v">≈ 9 min</span></div>
+  </div>
+
+  <div class="banner"><svg id="pattern" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+  <header class="masthead">
+    <div class="kicker">Path 01 · The basics, geometrically</div>
+    <h1>Visualizing<br><span class="o">Latent Space</span></h1>
+    <p class="lede">A language model's entire mental state — everything it "has in mind" while reading — is one long list of numbers. Which means it is one location in a vast geometric space. <em>Everything else in interpretability builds on this one idea. Take it slow.</em></p>
+  </header>
+
+  <!-- ════════ SCENE 01 — points ════════ -->
+  <section class="scene" id="s1">
+    <div class="scenebar"><span class="no">01</span><span class="t">Every thought is a point</span></div>
+    <h2>The space where thinking happens</h2>
+    <div class="scene-intro">
+      <p>When a model reads text, each layer of the network summarizes what it has understood so far as a list of numbers — the <b>activation vector</b>. A list of numbers is a coordinate: three numbers pick a point in 3D space, and the model's 4,096 numbers pick a point in a 4,096-dimensional one. That space is called <b>latent space</b>, and one "thought" = one point in it.</p>
+      <p>We fed a model thousands of tiny snippets and recorded where each one landed. <b>Drag to look around; hover a dot</b> to see the text that put the model there.</p>
+    </div>
+    <div class="stage">
+      <canvas id="cloud" class="cloudcv"></canvas>
+      <div class="hint" id="hint1">Drag to rotate · Hover a point</div>
+      <div id="tip1" class="tipbox"><span class="tcl"></span><span class="tx"></span></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <p class="note">Nothing about this arrangement was designed. The model <em>chose</em> where every point goes — and already, just from that choice, structure is visible.</p>
+
+    <div class="aside">
+      <canvas id="shadowcv" width="300" height="240"></canvas>
+      <div class="txt">
+        <div class="atag">Honesty checkpoint</div>
+        <h3>You're looking at a shadow</h3>
+        <p>The real space has thousands of dimensions; your screen has two. Everything on this page is a <b>projection</b> — the same way this 3D cube casts a flat 2D shadow. Shadows lose detail but keep the structure that matters: what's near, what's far, what lines up. Keep that caveat in your pocket for every visualization you ever see of a neural network.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ SCENE 02 — distance ════════ -->
+  <section class="scene" id="s2">
+    <div class="scenebar"><span class="no">02</span><span class="t">Distance is meaning</span></div>
+    <h2>Similar thoughts land near each other</h2>
+    <div class="scene-intro">
+      <p>The clusters weren't a coincidence. The model is trained to predict text, and predicting text about cats requires the same "mental machinery" as predicting text about dogs — so the model learns to place those states nearby. <b>Distance in latent space = difference in meaning.</b> This is the property that makes everything measurable.</p>
+      <p>Test it. Pick a sentence the model has never seen, and watch where its point lands — then check its nearest neighbors. Watch what happens with the two <b>"bank"</b> sentences: same word, two completely different neighborhoods.</p>
+    </div>
+    <div class="pickrow" id="drops"></div>
+    <div class="stage">
+      <canvas id="cloud2" class="cloudcv"></canvas>
+      <div class="hint" id="hint2">Pick a sentence above</div>
+      <div class="nnpanel"><div class="nk">Nearest neighbors of the new point</div><div class="nn" id="nnlist">—</div></div>
+    </div>
+    <p class="note">The model was never told what a "bank" is. It just noticed that <em>riverbank sentences behave like nature sentences</em>, and money-bank sentences behave like finance ones — so it stores them apart. Context decides the point, not the word.</p>
+  </section>
+
+  <!-- ════════ SCENE 03 — directions ════════ -->
+  <section class="scene" id="s3">
+    <div class="scenebar"><span class="no">03</span><span class="t">Meaning has direction</span></div>
+    <h2>Concepts aren't places — they're arrows</h2>
+    <div class="scene-intro">
+      <p>Here's the jump that unlocks everything. If distance carries meaning, then so does <b>direction</b>: the step from "man" to "king" points the same way as the step from "woman" to "queen." That shared arrow <i>is</i> the concept of royalty, as far as the model is concerned. Concepts live in latent space as <b>directions you can move in</b>, not points you visit.</p>
+      <p>Left: classic vector arithmetic — copy an arrow, get an analogy. Right: what it feels like to slide one single direction up while a sentence is held in place.</p>
+    </div>
+    <div class="panel2">
+      <div class="svgcard">
+        <div class="ptag">A · Copy the arrow, get the analogy</div>
+        <div class="pickrow" id="analogybtns"></div>
+        <svg id="anaplot" viewBox="0 0 460 320" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="ctl"><button class="btn" id="anaplay">▶ Play it</button><span class="readout" id="anaread">—</span></div>
+      </div>
+      <div class="svgcard">
+        <div class="ptag">B · Walk a sentence along one direction</div>
+        <svg id="dirplot" viewBox="0 0 460 190" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="ctl"><label>French‑ness</label><input type="range" id="dirslider" min="0" max="100" value="0"></div>
+        <div class="morphbox" id="morphout"></div>
+      </div>
+    </div>
+    <p class="note">This is not a metaphor. In 2024, Anthropic <em>actually steered Claude</em> by pushing its activations along a found direction — that story is Path 04.</p>
+  </section>
+
+  <!-- ════════ SCENE 04 — concepts vs points ════════ -->
+  <section class="scene" id="s4">
+    <div class="scenebar"><span class="no">04</span><span class="t">Human concepts vs the model's</span></div>
+    <h2>To you, "cat" is a category. To the model, it's a dial.</h2>
+    <div class="scene-intro">
+      <p>Humans treat concepts as boxes: a thing is a cat or it isn't. The model treats every concept as an <b>axis with a volume knob</b> — a thought sits at "0.8 cat, 0.1 French, 0.9 formal" all at once. No box, just coordinates. Every point you saw in Scene 01 is really a <b>recipe: a little of many directions added together</b>.</p>
+      <p>Mix a thought yourself. Three knobs, one point, and the kind of sentence you'd find at that location:</p>
+    </div>
+    <div class="mixer">
+      <div class="sliders">
+        <div class="srow"><label style="color:var(--red)">cat‑ness</label><input type="range" id="mx0" min="0" max="100" value="90"></div>
+        <div class="srow"><label style="color:var(--green)">French‑ness</label><input type="range" id="mx1" min="0" max="100" value="10"></div>
+        <div class="srow"><label style="color:var(--blue)">formality</label><input type="range" id="mx2" min="0" max="100" value="10"></div>
+        <svg id="mixcube" viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="mixout">
+        <span class="ok">A sentence living at this point</span>
+        <div class="otext" id="mixtext"></div>
+        <div class="vbars">
+          <div class="vb"><i id="vb0" style="background:var(--red)"></i><span>cat</span></div>
+          <div class="vb"><i id="vb1" style="background:var(--green)"></i><span>french</span></div>
+          <div class="vb"><i id="vb2" style="background:var(--blue)"></i><span>formal</span></div>
+          <div class="vb"><i style="background:#cdc4ae; height:34%"></i><span>+4,093 more…</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Two honest complications. Real thoughts blend <em>thousands</em> of dials, not three. And many of the model's dials correspond to no human word at all — figuring out which directions mean <em>what</em> is the entire project of interpretability.</p>
+  </section>
+
+  <!-- ════════ SCENE 05 — the catch ════════ -->
+  <section class="scene" id="s5">
+    <div class="scenebar"><span class="no">05</span><span class="t">The catch</span></div>
+    <h2>There are more concepts than directions</h2>
+    <div class="scene-intro">
+      <p>A space with 4,096 dimensions has room for exactly 4,096 directions that are fully independent — mutually perpendicular, zero crosstalk. But a model needs to represent <b>millions</b> of concepts: every animal, every name, every idiom in every language, every API. The arithmetic does not work.</p>
+      <p>Feel the squeeze in the smallest possible space. This plane has room for 2 clean directions. Keep adding concepts:</p>
+    </div>
+    <div class="svgcard" style="max-width:620px;">
+      <div class="ptag">Concepts competing for a 2‑dimensional space</div>
+      <svg id="crowdplot" viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="ctl"><label>concepts</label><input type="range" id="crowdslider" min="2" max="12" value="2"><span class="readout" id="crowdread"></span></div>
+      <div class="morphbox" id="crowdcap"></div>
+    </div>
+    <p class="note">The model's answer to this squeeze is a brilliant, messy compression trick called <em>superposition</em> — and it's the reason neural networks are so hard to read. That's Path 02.</p>
+  </section>
+
+  <div class="cta">
+    <a href="index.html#paths">
+      <span class="ck">Continue → Path 02</span>
+      <span class="ct">Superposition</span>
+      <span class="cd">how millions of concepts get crammed into thousands of directions — and what it breaks</span>
+    </a>
+    <a href="index.html">
+      <span class="ck">← Back</span>
+      <span class="ct">All paths</span>
+      <span class="cd">the full map of Exploring Interpretability</span>
+    </a>
+  </div>
+
+  <footer>
+    <p>Built on: <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a> (2022) · <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity</a> (2023) · <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">Scaling Monosemanticity</a> (2024). Examples paraphrased for teaching; the clouds here are illustrative, not real model data.</p>
+  </footer>
+</div>
+
+<script>
+/* ═════════ striped-pixel banner ═════════ */
+(() => {
+  const svg = document.getElementById('pattern');
+  const U = 12, COLS = 88, ROWS = 12;
+  svg.setAttribute('viewBox', `0 0 ${COLS*U} ${ROWS*U}`);
+  const PAL = ['#e3242f','#8c2033','#3961c6','#eda211','#23784f','#e995ad','#16141b','#f0e7d5','#5b86d6'];
+  const WEIGHT = [.16,.08,.15,.12,.11,.10,.16,.09,.03];
+  let seed = 411;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const wpick = () => { let r = rnd(), a = 0; for (let i = 0; i < PAL.length; i++){ a += WEIGHT[i]; if (r < a) return PAL[i]; } return PAL[0]; };
+  let h = `<rect width="${COLS*U}" height="${ROWS*U}" fill="#f0e7d5"/>`;
+  let c = 0;
+  while (c < COLS) {
+    const w = 1 + Math.floor(rnd()*3), nseg = rnd() < .6 ? 1 : 2;
+    const top = rnd() < .2 ? Math.floor(rnd()*3) : 0, bot = rnd() < .2 ? ROWS - Math.floor(rnd()*3) : ROWS;
+    let row = top;
+    for (let s = 0; s < nseg && row < bot; s++) {
+      const end = (s === nseg-1) ? bot : Math.min(bot, row + 3 + Math.floor(rnd()*6));
+      h += `<rect x="${c*U}" y="${row*U}" width="${Math.min(w,COLS-c)*U}" height="${(end-row)*U}" fill="${wpick()}"/>`;
+      row = end;
+    }
+    c += w;
+  }
+  for (let p = 0; p < 4; p++) {
+    const pw = 5 + Math.floor(rnd()*10), ph = 2 + Math.floor(rnd()*2);
+    const px = Math.floor(rnd()*(COLS-pw)), py = Math.floor(rnd()*(ROWS-ph));
+    const checker = rnd() < .5, cA = checker ? '#16141b' : wpick();
+    for (let i = 0; i < pw; i++) for (let j = 0; j < ph; j++) {
+      let f;
+      if (checker) f = (i+j)%2 ? cA : '#f0e7d5';
+      else { if (rnd() < .3) continue; f = wpick(); }
+      h += `<rect x="${(px+i)*U}" y="${(py+j)*U}" width="${U}" height="${U}" fill="${f}"/>`;
+    }
+  }
+  svg.innerHTML = h;
+})();
+
+/* ═════════ shared data ═════════ */
+const CLUSTERS = [
+  {name:'animals',  col:'#e3242f', center:[ 0.62,  0.30,  0.15], spread:.16,
+   snips:['"the old cat stretched in the sun"','"wolves hunt in coordinated packs"','"her parrot learned twelve words"','"the horse cleared the fence easily"','"otters hold hands while sleeping"']},
+  {name:'code',     col:'#3961c6', center:[-0.60,  0.38, -0.10], spread:.15,
+   snips:['for (let i = 0; i < n; i++)','def parse(tokens: list) -> Tree:','SELECT name FROM users WHERE id=7','try { await fetch(url) } catch (e)','x = np.zeros((512, 512))']},
+  {name:'French',   col:'#23784f', center:[ 0.10, -0.62,  0.35], spread:.14,
+   snips:['«la lumière du matin sur les toits»','«nous irons ensemble au marché»','«il pleut doucement sur la ville»','«un café, s\'il vous plaît»','«le temps passe trop vite»']},
+  {name:'money',    col:'#dd9a0c', center:[-0.15,  0.05,  0.68], spread:.13,
+   snips:['"a 12% increase over Q3"','"the loan was approved at 6%"','"quarterly interest payments"','"she opened a savings account"','"the deposit cleared on Monday"']},
+  {name:'emotions', col:'#d4738f', center:[ 0.45, -0.35, -0.48], spread:.16,
+   snips:['"a quiet, unreasonable joy"','"he missed her before she left"','"dread pooled in his stomach"','"relief washed over the room"','"an old, familiar loneliness"']},
+  {name:'nature',   col:'#8c2033', center:[-0.55, -0.42, -0.30], spread:.15,
+   snips:['"moss on the north side of the stones"','"the river slowed at the bend"','"fog settled between the pines"','"tide pools full of small lives"','"the meadow after first rain"']},
+  {name:'DNA',      col:'#5b86d6', center:[ 0.02,  0.66, -0.52], spread:.11,
+   snips:['AATGGCTTAGCACCTGAAT','CGGATTACAGGCATGAGCC','"the BRCA1 locus variant"','TTAGGCATCCGTAAGGCTA','"a 41-base-pair deletion"']},
+];
+
+/* ═════════ 3D cloud engine ═════════ */
+function makeCloud(cfg){
+  const cv = document.querySelector(cfg.canvas);
+  const ctx = cv.getContext('2d');
+  const tip = cfg.tip ? document.querySelector(cfg.tip) : null;
+  const hint = cfg.hint ? document.querySelector(cfg.hint) : null;
+  const PER = cfg.per || 260, HAZE = cfg.haze ?? 240, DIM = cfg.dim ?? 1;
+  const pts = [];
+  let seed = cfg.seed || 42;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => (rand()+rand()+rand()+rand()-2)/2;
+  CLUSTERS.forEach((c, ci) => {
+    for (let i = 0; i < PER; i++) pts.push({
+      x: c.center[0]+gauss()*c.spread, y: c.center[1]+gauss()*c.spread, z: c.center[2]+gauss()*c.spread,
+      c: ci, s: i % c.snips.length
+    });
+  });
+  for (let i = 0; i < HAZE; i++) pts.push({x:gauss()*.85, y:gauss()*.85, z:gauss()*.85, c:-1, s:-1});
+
+  let W, H, DPR;
+  const resize = () => {
+    DPR = Math.min(devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W*DPR; cv.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  };
+  resize(); addEventListener('resize', resize);
+
+  let yaw = cfg.yaw ?? .6, pitch = .18, autoSpin = true, dragging = false, lx = 0, ly = 0, vyaw = 0, vpitch = 0;
+  let mouseX = -1, mouseY = -1;
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId);
+    const r = cv.getBoundingClientRect();
+    dragging = true; autoSpin = false; lx = e.clientX-r.left; ly = e.clientY-r.top;
+    cv.classList.add('dragging'); if (hint) hint.classList.add('gone');
+  });
+  cv.addEventListener('pointermove', e => {
+    const r = cv.getBoundingClientRect();
+    const x = e.clientX-r.left, y = e.clientY-r.top;
+    if (dragging) {
+      vyaw = (x-lx)*.0045; vpitch = (y-ly)*.0035;
+      yaw += vyaw; pitch = Math.max(-1.35, Math.min(1.35, pitch+vpitch));
+      lx = x; ly = y;
+    }
+    mouseX = x; mouseY = y;
+  });
+  cv.addEventListener('pointerup', () => { dragging = false; cv.classList.remove('dragging'); });
+  cv.addEventListener('pointerleave', () => { mouseX = -1; if (!dragging){ dragging = false; cv.classList.remove('dragging'); } });
+
+  /* drop state */
+  let drop = null;
+  const ease = t => 1 - Math.pow(1-t, 3);
+  function doDrop(ci, label){
+    const c = CLUSTERS[ci];
+    const jit = () => (rand()-.5)*.1;
+    const to = [c.center[0]+jit(), c.center[1]+jit(), c.center[2]+jit()];
+    drop = {ci, label, t:0, from:[to[0]*.2, to[1]*.2-1.55, to[2]*.2], to, neighbors:null};
+    if (hint) hint.classList.add('gone');
+  }
+
+  const FOV = 2.6;
+  const proj = new Array(pts.length);
+  function render(){
+    if (!dragging) {
+      yaw += autoSpin ? .0022 : vyaw *= .95;
+      if (!autoSpin) pitch = Math.max(-1.35, Math.min(1.35, pitch + (vpitch *= .95)));
+      if (!autoSpin && Math.abs(vyaw) < .00002 && Math.abs(vpitch) < .00002) autoSpin = true;
+    }
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const R = Math.min(W,H)*.42;
+    ctx.clearRect(0,0,W,H);
+    function project(x,y,z){
+      let X = x*cy + z*sy, Z = -x*sy + z*cy;
+      let Y = y*cp - Z*sp; Z = y*sp + Z*cp;
+      const k = FOV/(FOV+Z);
+      return [W/2 + X*R*k, H/2 + Y*R*k, Z, k];
+    }
+    ctx.strokeStyle = 'rgba(22,20,27,.08)'; ctx.lineWidth = 1;
+    [[1.05,0,0],[0,1.05,0],[0,0,1.05]].forEach(a => {
+      const p1 = project(-a[0],-a[1],-a[2]), p2 = project(a[0],a[1],a[2]);
+      ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke();
+    });
+    for (let i = 0; i < pts.length; i++) proj[i] = project(pts[i].x, pts[i].y, pts[i].z);
+    const order = proj.map((p,i) => i).sort((a,b) => proj[b][2]-proj[a][2]);
+
+    let hit = -1, hd = 144;
+    if (tip && mouseX >= 0 && !dragging) {
+      for (let i = 0; i < pts.length; i++) {
+        if (pts[i].c < 0) continue;
+        const dx = proj[i][0]-mouseX, dy = proj[i][1]-mouseY, d = dx*dx+dy*dy;
+        if (d < hd) { hd = d; hit = i; }
+      }
+    }
+    for (const i of order) {
+      const [x,y,z,k] = proj[i], p = pts[i];
+      const depth = Math.max(0, Math.min(1, (1.1-z)/2.2));
+      if (p.c < 0) {
+        ctx.fillStyle = `rgba(22,20,27,${(.06+depth*.08)*DIM})`;
+        ctx.beginPath(); ctx.arc(x,y,1.5*k,0,7); ctx.fill();
+        continue;
+      }
+      const isNb = drop && drop.neighbors && drop.neighbors.includes(i);
+      ctx.globalAlpha = (.3 + depth*.62) * (isNb ? 1 : DIM);
+      ctx.fillStyle = CLUSTERS[p.c].col;
+      ctx.beginPath(); ctx.arc(x,y,(i === hit || isNb ? 5 : 2.7)*k,0,7); ctx.fill();
+      if (i === hit) {
+        ctx.globalAlpha = .5;
+        ctx.beginPath(); ctx.arc(x,y,11*k,0,7);
+        ctx.strokeStyle = '#16141b'; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    /* labels */
+    ctx.textAlign = 'center'; ctx.font = '700 10px "Space Mono", monospace';
+    CLUSTERS.forEach(c => {
+      const [x,y,z] = project(c.center[0], c.center[1], c.center[2]);
+      const depth = Math.max(0, Math.min(1, (1.1-z)/2.2));
+      const a = (.3 + depth*.7) * (cfg.faintLabels ? .55 : 1);
+      const label = c.name.toUpperCase();
+      const w = ctx.measureText(label).width;
+      ctx.globalAlpha = a; ctx.fillStyle = '#16141b';
+      ctx.fillRect(x-w/2-6, y-26, w+12, 17);
+      ctx.fillStyle = '#f0e7d5'; ctx.fillText(label, x, y-14);
+      ctx.globalAlpha = 1;
+    });
+    /* drop point */
+    if (drop) {
+      if (drop.t < 1) drop.t = Math.min(1, drop.t + .016);
+      const e = ease(drop.t);
+      const px = drop.from[0]+(drop.to[0]-drop.from[0])*e;
+      const py = drop.from[1]+(drop.to[1]-drop.from[1])*e;
+      const pz = drop.from[2]+(drop.to[2]-drop.from[2])*e;
+      const [x,y,,k] = project(px,py,pz);
+      if (drop.t >= 1 && !drop.neighbors) {
+        const ds = pts.map((p,i) => p.c === drop.ci
+          ? {i, d:(p.x-drop.to[0])**2+(p.y-drop.to[1])**2+(p.z-drop.to[2])**2} : null)
+          .filter(Boolean).sort((a,b) => a.d-b.d).slice(0,4);
+        drop.neighbors = ds.map(o => o.i);
+        if (cfg.onLand) cfg.onLand(drop.neighbors.map(i => CLUSTERS[pts[i].c].snips[pts[i].s]), CLUSTERS[drop.ci].name);
+      }
+      if (drop.neighbors) {
+        ctx.strokeStyle = '#16141b'; ctx.lineWidth = 1.2; ctx.setLineDash([4,4]);
+        drop.neighbors.forEach(i => {
+          ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(proj[i][0],proj[i][1]); ctx.stroke();
+        });
+        ctx.setLineDash([]);
+      }
+      ctx.beginPath(); ctx.arc(x,y,7.5*k,0,7);
+      ctx.fillStyle = CLUSTERS[drop.ci].col; ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = '#16141b'; ctx.stroke();
+      const lw = ctx.measureText('NEW THOUGHT').width;
+      ctx.fillStyle = '#16141b'; ctx.fillRect(x-lw/2-6, y-34, lw+12, 17);
+      ctx.fillStyle = '#eda211'; ctx.fillText('NEW THOUGHT', x, y-22);
+    }
+    /* tooltip */
+    if (tip) {
+      if (hit >= 0) {
+        const p = pts[hit], c = CLUSTERS[p.c];
+        tip.querySelector('.tcl').textContent = c.name;
+        tip.querySelector('.tx').textContent = c.snips[p.s];
+        tip.style.opacity = 1;
+        tip.style.left = Math.min(W-260, proj[hit][0]+14)+'px';
+        tip.style.top = (proj[hit][1]+14)+'px';
+      } else tip.style.opacity = 0;
+    }
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+  return {drop: doDrop};
+}
+
+/* ═════════ scene 01 ═════════ */
+makeCloud({canvas:'#cloud', tip:'#tip1', hint:'#hint1', seed:42});
+setTimeout(() => document.getElementById('hint1').classList.add('gone'), 7000);
+document.getElementById('legend').innerHTML =
+  CLUSTERS.map(c => `<span><i style="background:${c.col}"></i>${c.name}</span>`).join('') +
+  `<span><i style="background:#b3a98f"></i>everything else</span>`;
+
+/* ═════════ aside: shadow cube ═════════ */
+(() => {
+  const cv = document.getElementById('shadowcv'), ctx = cv.getContext('2d');
+  const V = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  const E = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  let a = 0;
+  (function loop(){
+    a += .008;
+    ctx.clearRect(0,0,300,240);
+    const ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(.4), sb = Math.sin(.4);
+    const P = V.map(([x,y,z]) => {
+      let X = x*ca + z*sa, Z = -x*sa + z*ca;
+      let Y = y*cb - Z*sb; Z = y*sb + Z*cb;
+      const k = 3/(3+Z*.5);
+      return [150 + X*34*k, 92 + Y*34*k, X];
+    });
+    ctx.strokeStyle = '#eda211'; ctx.lineWidth = 1.6;
+    E.forEach(([i,j]) => { ctx.beginPath(); ctx.moveTo(P[i][0],P[i][1]); ctx.lineTo(P[j][0],P[j][1]); ctx.stroke(); });
+    /* flat shadow: x preserved, y squashed onto ground line */
+    ctx.strokeStyle = 'rgba(240,231,213,.34)'; ctx.lineWidth = 1.2;
+    const G = P.map(p => [150 + (p[0]-150)*1.15, 196 + (p[1]-92)*.13]);
+    E.forEach(([i,j]) => { ctx.beginPath(); ctx.moveTo(G[i][0],G[i][1]); ctx.lineTo(G[j][0],G[j][1]); ctx.stroke(); });
+    ctx.fillStyle = 'rgba(240,231,213,.5)';
+    ctx.font = '700 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillText('3D OBJECT', 150, 30);
+    ctx.fillText('ITS 2D SHADOW', 150, 226);
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ═════════ scene 02: drops ═════════ */
+(() => {
+  const DROPS = [
+    {html:'“the golden retriever fetched the ball”', c:0},
+    {html:'printf("hello, world");', c:1},
+    {html:'«où est la gare&nbsp;?»', c:2},
+    {html:'“the river <span class="hl">bank</span> was soft with moss”', c:5},
+    {html:'“the <span class="hl">bank</span> approved her loan”', c:3},
+  ];
+  const cloud2 = makeCloud({
+    canvas:'#cloud2', hint:'#hint2', seed:77, per:170, haze:140, dim:.38, faintLabels:true, yaw:1.4,
+    onLand: (snips, cname) => {
+      document.getElementById('nnlist').innerHTML =
+        `<b>[${cname}]</b> ` + snips.map(s => s.replace(/</g,'&lt;')).join(' &nbsp;·&nbsp; ');
+    }
+  });
+  const row = document.getElementById('drops');
+  DROPS.forEach(d => {
+    const b = document.createElement('button');
+    b.className = 'btn'; b.innerHTML = d.html;
+    b.onclick = () => {
+      row.querySelectorAll('.btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('nnlist').textContent = '…landing…';
+      cloud2.drop(d.c, d.html);
+    };
+    row.appendChild(b);
+  });
+})();
+
+/* ═════════ scene 03A: analogies ═════════ */
+(() => {
+  const ANALOGIES = [
+    {name:'royalty',  A:'man', B:'king', C:'woman', D:'queen', dir:'ROYALTY'},
+    {name:'tense',    A:'walk', B:'walked', C:'swim', D:'swam', dir:'PAST TENSE'},
+    {name:'capitals', A:'France', B:'Paris', C:'Italy', D:'Rome', dir:'CAPITAL OF'},
+  ];
+  const POS = {A:[120,255], B:[190,90], C:[300,255], D:[370,90]};
+  const svg = document.getElementById('anaplot');
+  const read = document.getElementById('anaread');
+  let cur = ANALOGIES[0], p1 = 0, p2 = 0, flash = 0, anim = null;
+
+  function arrow(x1,y1,x2,y2,p,col,dash){
+    if (p <= 0) return '';
+    const ex = x1+(x2-x1)*p, ey = y1+(y2-y1)*p;
+    const ang = Math.atan2(y2-y1, x2-x1);
+    const hx = ex - 12*Math.cos(ang), hy = ey - 12*Math.sin(ang);
+    return `<line x1="${x1}" y1="${y1}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="3" ${dash ? 'stroke-dasharray="7 5"' : ''}/>
+      <polygon points="${ex},${ey} ${hx+5*Math.cos(ang+1.57)},${hy+5*Math.sin(ang+1.57)} ${hx+5*Math.cos(ang-1.57)},${hy+5*Math.sin(ang-1.57)}" fill="${col}"/>`;
+  }
+  function draw(){
+    let h = '<rect width="460" height="320" fill="none"/>';
+    for (const k of ['A','B','C','D']) {
+      const [x,y] = POS[k];
+      const isD = k === 'D' && flash > 0;
+      h += `<circle cx="${x}" cy="${y}" r="${isD ? 9+3*Math.sin(flash*.25) : 6}" fill="${isD ? '#e3242f' : '#16141b'}"/>
+            <text x="${x}" y="${y+26}" text-anchor="middle" font-size="13" font-weight="700" fill="#16141b">${cur[k]}</text>`;
+    }
+    h += arrow(POS.A[0],POS.A[1],POS.B[0],POS.B[1],p1,'#e3242f',false);
+    h += arrow(POS.C[0],POS.C[1],POS.D[0],POS.D[1],p2,'#e3242f',true);
+    if (p1 >= 1) h += `<text x="${(POS.A[0]+POS.B[0])/2-14}" y="${(POS.A[1]+POS.B[1])/2}" text-anchor="end" font-size="10" font-weight="700" fill="#e3242f">${cur.dir} →</text>`;
+    svg.innerHTML = h;
+  }
+  function play(){
+    clearInterval(anim); p1 = 0; p2 = 0; flash = 0;
+    read.textContent = `${cur.dir.toLowerCase()} = ${cur.B} − ${cur.A}`;
+    anim = setInterval(() => {
+      if (p1 < 1) p1 += .04;
+      else if (p2 < 1) { p2 += .04; read.textContent = `${cur.C} + ${cur.dir.toLowerCase()} ≈ ?`; }
+      else { flash++; read.textContent = `${cur.C} + ${cur.dir.toLowerCase()} ≈ ${cur.D} ✓`; if (flash > 60) clearInterval(anim); }
+      draw();
+    }, 16);
+  }
+  const btns = document.getElementById('analogybtns');
+  ANALOGIES.forEach((a,i) => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (i === 0 ? ' active' : ''); b.textContent = a.name;
+    b.onclick = () => { btns.querySelectorAll('.btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); cur = a; play(); };
+    btns.appendChild(b);
+  });
+  document.getElementById('anaplay').onclick = play;
+  draw(); read.textContent = 'press play';
+})();
+
+/* ═════════ scene 03B: direction walk ═════════ */
+(() => {
+  const svg = document.getElementById('dirplot');
+  const sl = document.getElementById('dirslider');
+  const out = document.getElementById('morphout');
+  const MORPH = [
+    'the morning light on the rooftops',
+    'the morning light <b style="color:#23784f">sur les toits</b>',
+    '<b style="color:#23784f">la lumière du matin sur les toits</b>'
+  ];
+  function draw(){
+    const v = sl.value/100;
+    const x = 60 + v*330;
+    svg.innerHTML = `
+      <line x1="50" y1="120" x2="410" y2="120" stroke="#16141b" stroke-width="2.5"/>
+      <polygon points="418,120 404,113 404,127" fill="#16141b"/>
+      <text x="230" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#23784f">THE "FRENCH" DIRECTION →</text>
+      <line x1="60" y1="112" x2="60" y2="128" stroke="#16141b" stroke-width="2"/>
+      <text x="60" y="102" text-anchor="middle" font-size="9" fill="#6d675a">english</text>
+      <line x1="390" y1="112" x2="390" y2="128" stroke="#16141b" stroke-width="2"/>
+      <text x="390" y="102" text-anchor="middle" font-size="9" fill="#6d675a">français</text>
+      <circle cx="${x}" cy="120" r="9" fill="#23784f" stroke="#16141b" stroke-width="2.5"/>`;
+    out.innerHTML = MORPH[v < .34 ? 0 : v < .72 ? 1 : 2] +
+      `<span style="color:#6d675a"> &nbsp;·&nbsp; same thought, moved ${Math.round(v*100)}% along one direction</span>`;
+  }
+  sl.addEventListener('input', draw); draw();
+})();
+
+/* ═════════ scene 04: mixer ═════════ */
+(() => {
+  const COMBOS = [
+    'it\'s sunny outside.',
+    'my cat is napping again.',
+    'il fait beau aujourd\'hui.',
+    'mon chat fait encore la sieste.',
+    'We hereby confirm that outdoor conditions remain favorable.',
+    'The feline specimen is presently at rest.',
+    'Nous confirmons par la présente des conditions favorables.',
+    'Le spécimen félin se repose actuellement.',
+  ];
+  const sls = ['mx0','mx1','mx2'].map(id => document.getElementById(id));
+  const bars = ['vb0','vb1','vb2'].map(id => document.getElementById(id));
+  const txt = document.getElementById('mixtext');
+  const cube = document.getElementById('mixcube');
+  const O = [46,150], EX = [130,26], EY = [56,-46], EZ = [0,-104];
+  const add = (a,b,s) => [a[0]+b[0]*s, a[1]+b[1]*s];
+  function draw(){
+    const v = sls.map(s => s.value/100);
+    bars.forEach((b,i) => b.style.height = (8+v[i]*92)+'%');
+    const idx = (v[0] > .5 ? 1 : 0) + (v[1] > .5 ? 2 : 0) + (v[2] > .5 ? 4 : 0);
+    txt.textContent = '"' + COMBOS[idx] + '"';
+    /* parallelepiped frame */
+    const c000 = O, c100 = add(O,EX,1), c010 = add(O,EY,1), c001 = add(O,EZ,1);
+    const c110 = add(c100,EY,1), c101 = add(c100,EZ,1), c011 = add(c010,EZ,1);
+    const c111 = add(c110,EZ,1);
+    const L = (a,b,op) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#16141b" stroke-width="1" opacity="${op}"/>`;
+    let p = O;
+    p = add(p, EX, v[0]); p = add(p, EY, v[1]); p = add(p, EZ, v[2]);
+    cube.innerHTML =
+      L(c000,c100,.5)+L(c000,c010,.5)+L(c000,c001,.5)+
+      L(c100,c110,.2)+L(c100,c101,.2)+L(c010,c110,.2)+L(c010,c011,.2)+
+      L(c001,c101,.2)+L(c001,c011,.2)+L(c110,c111,.2)+L(c101,c111,.2)+L(c011,c111,.2)+
+      `<text x="${c100[0]+4}" y="${c100[1]+12}" font-size="9" font-weight="700" fill="#e3242f">CAT</text>
+       <text x="${c010[0]-4}" y="${c010[1]-4}" text-anchor="end" font-size="9" font-weight="700" fill="#23784f">FRENCH</text>
+       <text x="${c001[0]}" y="${c001[1]-6}" font-size="9" font-weight="700" fill="#3961c6">FORMAL</text>
+       <circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#eda211" stroke="#16141b" stroke-width="2.5"/>`;
+  }
+  sls.forEach(s => s.addEventListener('input', draw)); draw();
+})();
+
+/* ═════════ scene 05: crowding ═════════ */
+(() => {
+  const svg = document.getElementById('crowdplot');
+  const sl = document.getElementById('crowdslider');
+  const read = document.getElementById('crowdread');
+  const cap = document.getElementById('crowdcap');
+  const CX = 230, CYY = 155, R = 115;
+  function draw(){
+    const n = +sl.value;
+    const ang = 360/n;
+    const cross = Math.max(0, Math.cos(ang*Math.PI/180));
+    const col = ang >= 90 ? '#16141b' : ang >= 55 ? '#dd9a0c' : '#e3242f';
+    let h = `<circle cx="${CX}" cy="${CYY}" r="${R}" fill="none" stroke="#d8d2c2" stroke-dasharray="3 5"/>`;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI/2 + i*2*Math.PI/n;
+      const x = CX + Math.cos(a)*R, y = CYY + Math.sin(a)*R;
+      const hx = x - 13*Math.cos(a), hy = y - 13*Math.sin(a);
+      h += `<line x1="${CX}" y1="${CYY}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="2.6"/>
+            <polygon points="${x},${y} ${hx+5.5*Math.cos(a+1.57)},${hy+5.5*Math.sin(a+1.57)} ${hx+5.5*Math.cos(a-1.57)},${hy+5.5*Math.sin(a-1.57)}" fill="${col}"/>`;
+    }
+    svg.innerHTML = h;
+    read.textContent = `${n} concepts · ${Math.round(ang)}° apart`;
+    cap.innerHTML =
+      n <= 2 ? 'Opposite directions — completely independent. <b>Zero crosstalk.</b> The space is comfortable.' :
+      n <= 4 ? 'Still fine: at 90° the directions are perfectly perpendicular — reading one tells you <b>nothing</b> about the others. This is the ideal, and it caps out at (number of dimensions) concepts.' :
+      n <= 7 ? `Out of room. Every neighboring pair now overlaps — activating one concept <b>leaks into the next</b> (crosstalk ≈ ${cross.toFixed(2)}). The model can still use these directions… at a price.` :
+      `Serious crowding: crosstalk ≈ ${cross.toFixed(2)} between neighbors. The model tolerates this mess on purpose — <b>why</b> it does, and what it costs us, is the story of superposition.`;
+  }
+  sl.addEventListener('input', draw); draw();
+})();
+</script>
+</body>
+</html>
