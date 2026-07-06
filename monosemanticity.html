@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MONOSEMANTICITY — Path 03</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f0e7d5; --panel:#f5eee0; --ink:#16141b;
+    --red:#e3242f; --maroon:#8c2033; --blue:#3961c6; --yellow:#eda211;
+    --green:#23784f; --pink:#e995ad;
+    --muted:#6d675a;
+    --disp:'Clash Display','Arial Black',sans-serif;
+    --body:'General Sans',system-ui,sans-serif;
+    --mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.65;}
+  ::selection{background:rgba(35,120,79,.22);}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+  .topbar{display:flex; justify-content:space-between; align-items:baseline; padding:26px 0 18px; gap:14px; flex-wrap:wrap;}
+  .topbar .mark{font-family:var(--disp); font-weight:700; font-size:1.05rem; letter-spacing:.06em; text-transform:uppercase;}
+  .topbar .mark i{color:var(--red); font-style:normal;}
+  .topbar nav{font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; color:var(--muted); display:flex; gap:18px; flex-wrap:wrap;}
+  .topbar nav a{color:inherit; text-decoration:none; text-transform:uppercase;}
+  .topbar nav a:hover{color:var(--blue);}
+  .blackrule{height:3px; background:var(--ink);}
+  .meta{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:16px 0 14px; border-bottom:1px solid #d8d2c2;}
+  .meta div{font-family:var(--mono);}
+  .meta .k{font-size:.62rem; letter-spacing:.22em; color:var(--muted); text-transform:uppercase; display:block;}
+  .meta .v{font-size:.86rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;}
+  .meta .v.red{color:var(--red);}
+  @media(max-width:720px){.meta{grid-template-columns:1fr 1fr;}}
+  .banner{margin-top:26px; border:2.5px solid var(--ink); background:var(--panel); overflow:hidden;}
+  .banner svg{display:block; width:100%; height:auto;}
+  .masthead{padding:7vh 0 5vh; max-width:900px;}
+  .kicker{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--blue); margin-bottom:22px;}
+  h1{font-family:var(--disp); font-weight:700; text-transform:uppercase; font-size:clamp(2.4rem,6.6vw,4.8rem); line-height:.98; letter-spacing:-0.015em;}
+  h1 .o{color:var(--paper); -webkit-text-stroke:2px var(--ink); paint-order:stroke;}
+  .lede{margin-top:26px; font-size:1.12rem; max-width:660px; color:#3c3830;}
+  .lede em{color:var(--red); font-style:italic; font-weight:500;}
+  .scene{padding:5vh 0 4vh;}
+  .scenebar{display:flex; align-items:center; gap:16px; margin-bottom:18px;}
+  .scenebar .no{font-family:var(--disp); font-weight:700; font-size:.95rem; background:var(--ink); color:var(--paper); padding:6px 14px; letter-spacing:.08em;}
+  .scenebar .t{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted);}
+  .scenebar::after{content:""; flex:1; height:1px; background:#d8d2c2;}
+  .scene h2{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:clamp(1.5rem,3.4vw,2.2rem); line-height:1.05; margin-bottom:14px; max-width:760px;}
+  .scene-intro{max-width:680px; margin-bottom:26px; color:#3c3830;}
+  .scene-intro b{font-weight:600; color:var(--ink);}
+  .scene-intro p + p{margin-top:10px;}
+  .note{max-width:640px; margin:4vh auto 0; text-align:center; color:var(--muted); font-size:.95rem;}
+  .note em{color:var(--ink); font-style:normal; box-shadow:inset 0 -8px 0 rgba(237,162,17,.45);}
+  .btn{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.06em; background:var(--panel); color:var(--ink); border:2px solid var(--ink); padding:9px 14px; cursor:pointer; transition:all .12s;}
+  .btn:hover{background:var(--yellow);}
+  .btn.active{background:var(--ink); color:var(--paper);}
+  .pickrow{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px;}
+  .svgcard{border:2.5px solid var(--ink); background:var(--panel); padding:18px;}
+  .svgcard .ptag{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;}
+  .svgcard svg{display:block; width:100%; height:auto;}
+  .svgcard svg text{font-family:'Space Mono',monospace;}
+  .morphbox{font-family:var(--mono); font-size:.9rem; background:var(--paper); border:2px solid var(--ink); padding:14px 16px; margin-top:14px; min-height:56px;}
+
+  /* recipe chips */
+  .recipe{border:2.5px solid var(--ink); background:var(--panel); padding:22px; font-family:var(--mono); font-size:clamp(.8rem,2vw,1rem); display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
+  .recipe .chip{border:2px solid var(--ink); padding:5px 12px; font-weight:700; letter-spacing:.08em;}
+
+  /* feature browser */
+  .featpanel{background:var(--paper); border:2px solid var(--ink); padding:18px; min-height:170px;}
+  .featpanel .fd{font-family:var(--mono); font-size:.74rem; color:var(--muted); margin-bottom:14px;}
+  .featpanel .fs{font-family:var(--mono); font-size:.84rem; line-height:2.2;}
+  .featpanel .fs span{padding:2px 4px;}
+
+  .cta{margin:8vh 0 0; border-top:3px solid var(--ink); padding:30px 0 6vh; display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:720px){.cta{grid-template-columns:1fr;}}
+  .cta a{border:3px solid var(--ink); background:var(--panel); padding:20px; text-decoration:none; color:var(--ink); transition:transform .16s, box-shadow .16s;}
+  .cta a:hover{transform:translate(-4px,-4px); box-shadow:6px 6px 0 var(--ink);}
+  .cta .ck{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:8px;}
+  .cta .ct{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:1.25rem;}
+  .cta .cd{font-family:var(--mono); font-size:.7rem; color:var(--muted); display:block; margin-top:8px;}
+  footer{padding:0 0 8vh; font-family:var(--mono); font-size:.7rem; color:var(--muted); line-height:2;}
+  footer a{color:var(--blue); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════════════════════════
+  ✏️  EDITING THIS PAGE
+  All visible text is plain HTML below — search for the words you see
+  on the page and rewrite them. Widget data in the script at the bottom:
+  FEATURES (browser tabs) and CLAMPS (scene 04 outputs).
+═══════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="topbar">
+    <div class="mark">Exploring Interpretability<i>.</i></div>
+    <nav>
+      <a href="index.html">← All paths</a>
+      <a href="#s1">01 The idea</a>
+      <a href="#s2">02 The machine</a>
+      <a href="#s3">03 The catch (of features)</a>
+      <a href="#s4">04 The proof</a>
+    </nav>
+  </div>
+  <div class="blackrule"></div>
+  <div class="meta">
+    <div><span class="k">Path</span><span class="v red">No. 03</span></div>
+    <div><span class="k">Series</span><span class="v">Exploring Interpretability</span></div>
+    <div><span class="k">Subject</span><span class="v">Monosemanticity</span></div>
+    <div><span class="k">Read</span><span class="v">≈ 7 min</span></div>
+  </div>
+
+  <div class="banner"><svg id="pattern" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+  <header class="masthead">
+    <div class="kicker">Path 03 · The untangling</div>
+    <h1>Mono&shy;<span class="o">semanticity</span></h1>
+    <p class="lede">Superposition hid the model's concepts by rotating them off the axes. This path is the counter-move: a way to rotate them back — so that each unit means <em>exactly one thing</em>. That property is called monosemanticity, and in 2023 Anthropic showed how to manufacture it.</p>
+  </header>
+
+  <!-- ════════ SCENE 01 ════════ -->
+  <section class="scene" id="s1">
+    <div class="scenebar"><span class="no">01</span><span class="t">The idea</span></div>
+    <h2>Every thought is a recipe — find the ingredients</h2>
+    <div class="scene-intro">
+      <p>Recall the two facts we've earned. From Path 01: a thought is a <b>blend of concept-directions</b>. From Path 02: those concepts are <b>sparse</b> — only a handful are active at once. Put together, every activation the model ever produces should decompose like this:</p>
+    </div>
+    <div class="recipe" id="recipe">
+      activation&nbsp;≈&nbsp;
+      <span class="chip" style="background:var(--yellow)">3.2 × ARABIC SCRIPT</span> +
+      <span class="chip" style="background:var(--pink)">1.1 × FORMAL TONE</span> +
+      <span class="chip" style="background:#cdc4ae">0.0 × DNA</span> +
+      <span class="chip" style="background:#cdc4ae">0.0 × HTTP</span> +
+      <span style="color:var(--muted)">… thousands more at zero</span>
+    </div>
+    <p class="note">If we could recover the full ingredient list — the model's <em>dictionary</em> of concepts — reading its mind becomes looking up which ingredients are active. The method is called <em>dictionary learning</em>.</p>
+  </section>
+
+  <!-- ════════ SCENE 02 ════════ -->
+  <section class="scene" id="s2">
+    <div class="scenebar"><span class="no">02</span><span class="t">The machine</span></div>
+    <h2>The sparse autoencoder</h2>
+    <div class="scene-intro">
+      <p>The tool is a small helper network — a <b>sparse autoencoder (SAE)</b> — trained on millions of the model's activations with two competing goals: <b>reconstruct the activation faithfully</b>, and <b>use as few dictionary slots as possible</b>. Faithful + sparse is exactly the signature of the true ingredients — so that's what the machine is forced to discover.</p>
+      <p>Anthropic ran it on a small transformer: <b>512 tangled neurons in, 4,096 clean features out.</b> Watch the middle layer — only a few slots light up for any given thought:</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">Compress-side in · one-concept-per-slot out</div>
+      <svg id="saeviz" viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <p class="note">The SAE never touches the model — it's a <em>lens</em>, not surgery. Same activations, new coordinates: one axis per concept.</p>
+  </section>
+
+  <!-- ════════ SCENE 03 ════════ -->
+  <section class="scene" id="s3">
+    <div class="scenebar"><span class="no">03</span><span class="t">What came out</span></div>
+    <h2>Features that mean exactly one thing</h2>
+    <div class="scene-intro">
+      <p>The output was the result that named the paper. Where raw neurons were soup, the learned features were <b>monosemantic</b> — each firing for one nameable pattern, checkable by looking at exactly which text lights it up. Browse a few (paraphrased from the paper's real findings), then open the last tab for the before/after:</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">Feature browser · highlight = activation strength</div>
+      <div class="pickrow" id="featTabs"></div>
+      <div class="featpanel">
+        <div class="fd" id="featDesc"></div>
+        <div class="fs" id="featSnips"></div>
+      </div>
+    </div>
+    <p class="note">Same network, same activations — the SAE's coordinates simply <em>carve the model at its joints</em>. Sparsity, the thing that made superposition possible, is also what makes it reversible.</p>
+  </section>
+
+  <!-- ════════ SCENE 04 ════════ -->
+  <section class="scene" id="s4">
+    <div class="scenebar"><span class="no">04</span><span class="t">The proof</span></div>
+    <h2>Features are causal, not just correlated</h2>
+    <div class="scene-intro">
+      <p>A fair objection: maybe "features" are shapes we're seeing in clouds. The test is <b>intervention</b>. If the DNA feature really is the model's concept of DNA, then forcing it on should change what the model <i>does</i> — not just what we observe. It does:</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">Clamp one feature high · watch the continuation change</div>
+      <div class="pickrow">
+        <button class="btn active" data-clamp="none">no clamp (normal)</button>
+        <button class="btn" data-clamp="dna">clamp: DNA</button>
+        <button class="btn" data-clamp="base64">clamp: BASE64</button>
+        <button class="btn" data-clamp="arabic">clamp: ARABIC SCRIPT</button>
+      </div>
+      <div class="morphbox">
+        <span style="color:var(--muted); font-size:.72rem;">prompt: "The weather today is" → model continues:</span><br>
+        <span id="clampOut" style="color:var(--blue);"></span>
+      </div>
+    </div>
+    <p class="note">Correlation says "this pattern shows up together." Intervention says <em>"this pattern is the mechanism."</em> Features pass. One question left: does any of this survive contact with a real frontier model?</p>
+  </section>
+
+  <div class="cta">
+    <a href="steering-safety.html">
+      <span class="ck">Continue → Path 04</span>
+      <span class="ct">Steering &amp; Safety</span>
+      <span class="cd">34 million features in Claude 3 Sonnet — including the ones that matter</span>
+    </a>
+    <a href="index.html">
+      <span class="ck">← Back</span>
+      <span class="ct">All paths</span>
+      <span class="cd">the full map of Exploring Interpretability</span>
+    </a>
+  </div>
+
+  <footer>
+    <p>Built on: <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity: Decomposing Language Models With Dictionary Learning</a> (Bricken et&nbsp;al., 2023). Feature examples paraphrased; 512 → 4,096 figures from the paper.</p>
+  </footer>
+</div>
+
+<script>
+/* ═════════ striped banner ═════════ */
+(() => {
+  const svg = document.getElementById('pattern');
+  const U = 12, COLS = 88, ROWS = 12;
+  svg.setAttribute('viewBox', `0 0 ${COLS*U} ${ROWS*U}`);
+  const PAL = ['#e3242f','#8c2033','#3961c6','#eda211','#23784f','#e995ad','#16141b','#f0e7d5','#5b86d6'];
+  const WEIGHT = [.11,.08,.13,.11,.19,.1,.16,.09,.03];
+  let seed = 1337;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const wpick = () => { let r = rnd(), a = 0; for (let i = 0; i < PAL.length; i++){ a += WEIGHT[i]; if (r < a) return PAL[i]; } return PAL[0]; };
+  let h = `<rect width="${COLS*U}" height="${ROWS*U}" fill="#f0e7d5"/>`;
+  let c = 0;
+  while (c < COLS) {
+    const w = 1 + Math.floor(rnd()*3), nseg = rnd() < .6 ? 1 : 2;
+    const top = rnd() < .2 ? Math.floor(rnd()*3) : 0, bot = rnd() < .2 ? ROWS - Math.floor(rnd()*3) : ROWS;
+    let row = top;
+    for (let s = 0; s < nseg && row < bot; s++) {
+      const end = (s === nseg-1) ? bot : Math.min(bot, row + 3 + Math.floor(rnd()*6));
+      h += `<rect x="${c*U}" y="${row*U}" width="${Math.min(w,COLS-c)*U}" height="${(end-row)*U}" fill="${wpick()}"/>`;
+      row = end;
+    }
+    c += w;
+  }
+  for (let p = 0; p < 4; p++) {
+    const pw = 5 + Math.floor(rnd()*10), ph = 2 + Math.floor(rnd()*2);
+    const px = Math.floor(rnd()*(COLS-pw)), py = Math.floor(rnd()*(ROWS-ph));
+    const checker = rnd() < .5, cA = checker ? '#16141b' : wpick();
+    for (let i = 0; i < pw; i++) for (let j = 0; j < ph; j++) {
+      let f;
+      if (checker) f = (i+j)%2 ? cA : '#f0e7d5';
+      else { if (rnd() < .3) continue; f = wpick(); }
+      h += `<rect x="${(px+i)*U}" y="${(py+j)*U}" width="${U}" height="${U}" fill="${f}"/>`;
+    }
+  }
+  svg.innerHTML = h;
+})();
+
+/* ═════════ scene 02: SAE diagram (animated) ═════════ */
+(() => {
+  const svg = document.getElementById('saeviz');
+  const IN_N = 10, MID_N = 16, TOP = 60, BOT = 220;
+  const inY = i => TOP + i*(BOT-TOP)/(IN_N-1);
+  const midY = i => TOP + i*(BOT-TOP)/(MID_N-1);
+  let lit = [3, 9, 13];
+  function draw(){
+    let h = `
+      <text x="105" y="26" fill="#6d675a" font-size="11" text-anchor="middle">model activations (512)</text>
+      <text x="105" y="42" fill="#e3242f" font-size="10" font-weight="700" text-anchor="middle">EVERYTHING TANGLED</text>
+      <text x="360" y="26" fill="#6d675a" font-size="11" text-anchor="middle">SAE feature space (4,096)</text>
+      <text x="360" y="42" fill="#23784f" font-size="10" font-weight="700" text-anchor="middle">SPARSE — FEW SLOTS ACTIVE</text>
+      <text x="615" y="26" fill="#6d675a" font-size="11" text-anchor="middle">reconstruction</text>
+      <text x="615" y="42" fill="#3961c6" font-size="10" font-weight="700" text-anchor="middle">MUST MATCH THE INPUT</text>
+      <text x="232" y="244" fill="#6d675a" font-size="10" text-anchor="middle">encoder: expand + ReLU</text>
+      <text x="490" y="244" fill="#6d675a" font-size="10" text-anchor="middle">decoder: features × directions</text>`;
+    lit.forEach(j => {
+      for (let i = 0; i < IN_N; i += 3) {
+        h += `<line x1="112" y1="${inY(i)}" x2="352" y2="${midY(j)}" stroke="#d0c6ae" stroke-width=".7"/>
+              <line x1="368" y1="${midY(j)}" x2="608" y2="${inY(i)}" stroke="#d0c6ae" stroke-width=".7"/>`;
+      }
+    });
+    for (let i = 0; i < IN_N; i++) h += `<rect x="99" y="${inY(i)-6}" width="12" height="12" fill="#8c2033"/>`;
+    for (let i = 0; i < MID_N; i++) {
+      const on = lit.includes(i);
+      h += `<rect x="354" y="${midY(i)-5}" width="12" height="12" fill="${on ? '#23784f' : '#e4dbc6'}" stroke="${on ? '#16141b' : '#d0c6ae'}" stroke-width="1.5"/>`;
+    }
+    for (let i = 0; i < IN_N; i++) h += `<rect x="609" y="${inY(i)-6}" width="12" height="12" fill="#3961c6"/>`;
+    svg.innerHTML = h;
+  }
+  draw();
+  setInterval(() => {
+    lit = [];
+    while (lit.length < 3) { const k = Math.floor(Math.random()*MID_N); if (!lit.includes(k)) lit.push(k); }
+    draw();
+  }, 1800);
+})();
+
+/* ═════════ scene 03: feature browser ═════════ */
+(() => {
+  const FEATURES = {
+    'ARABIC SCRIPT': {
+      d: 'Fires on Arabic text — and almost nothing else. One of the paper\'s flagship features.',
+      s: [['في هذا اليوم الجميل ', 1], ['نذهب إلى السوق', .9], [' … meeting at 3pm — ', 0], ['مرحبا', .8], [' — then lunch.', 0]]
+    },
+    'DNA': {
+      d: 'Fires on runs of A/C/G/T — genetic sequences inside ordinary text.',
+      s: [['The primer sequence ', 0], ['AATGGCTTAGCACCT', 1], [' was amplified, while ', 0], ['GGCATTA', .8], [' failed QC.', 0]]
+    },
+    'BASE64': {
+      d: 'Fires on base64-encoded blobs — tokens, URLs, data dumps.',
+      s: [['Authorization: Bearer ', 0], ['aGVsbG8gd29ybGQhIQ==', 1], [' expires in 3600s; retry with ', 0], ['dGVzdF9rZXk=', .85], ['.', 0]]
+    },
+    'LEGAL BOILERPLATE': {
+      d: 'Fires on contractual language — a more abstract, style-level pattern.',
+      s: [['We had coffee. ', 0], ['Notwithstanding the foregoing', 1], [', the parties ', .4], ['hereby agree to indemnify', .9], [' — then we left.', 0]]
+    },
+    '⚠ RAW NEURON #2554': {
+      d: 'For contrast: a typical raw neuron. Citations? Dialogue? HTTP? Korean? All of the above — this is what the SAE rescues you from.',
+      s: [['(Smith et al., 2019)', .8], [' · "you can\'t be serious." ', .7], [' · GET /api/v2/users ', .9], [' · 그는 조용히 ', .75], [' · …and thousands more', .3]]
+    }
+  };
+  const tabs = document.getElementById('featTabs'), desc = document.getElementById('featDesc'), snips = document.getElementById('featSnips');
+  const names = Object.keys(FEATURES);
+  function show(n){
+    const f = FEATURES[n];
+    desc.textContent = f.d;
+    snips.innerHTML = f.s.map(([t,a]) => {
+      const bg = a > 0 ? `rgba(237,162,17,${.2 + a*.6})` : 'transparent';
+      return `<span style="background:${bg};">${t.replace(/</g,'&lt;')}</span>`;
+    }).join('');
+  }
+  names.forEach((n,i) => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (i === 0 ? ' active' : ''); b.textContent = n;
+    b.onclick = () => { tabs.querySelectorAll('.btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); show(n); };
+    tabs.appendChild(b);
+  });
+  show(names[0]);
+})();
+
+/* ═════════ scene 04: clamp demo ═════════ */
+(() => {
+  const CLAMPS = {
+    none: 'sunny with a light breeze — a good day to be outside.',
+    dna: 'sunny with a light breeze GGCAATGGCATTAGCCTAGGCAATTCGACCTAGGCATT…',
+    base64: 'sunny with a light breeze c3Vubnkgd2l0aCBhIGxpZ2h0IGJyZWV6ZQ==…',
+    arabic: 'مشمس مع نسيم خفيف — يوم جميل للخروج…'
+  };
+  const out = document.getElementById('clampOut');
+  let timer;
+  function type(s){
+    clearInterval(timer); out.textContent = ''; let i = 0;
+    timer = setInterval(() => { out.textContent = s.slice(0, ++i); if (i >= s.length) clearInterval(timer); }, 18);
+  }
+  document.querySelectorAll('[data-clamp]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-clamp]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    type(CLAMPS[b.dataset.clamp]);
+  });
+  type(CLAMPS.none);
+})();
+</script>
+</body>
+</html>

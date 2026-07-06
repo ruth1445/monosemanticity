@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEERING &amp; SAFETY — Path 04</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f0e7d5; --panel:#f5eee0; --ink:#16141b;
+    --red:#e3242f; --maroon:#8c2033; --blue:#3961c6; --yellow:#eda211;
+    --green:#23784f; --pink:#e995ad;
+    --muted:#6d675a;
+    --disp:'Clash Display','Arial Black',sans-serif;
+    --body:'General Sans',system-ui,sans-serif;
+    --mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.65;}
+  ::selection{background:rgba(237,162,17,.3);}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+  .topbar{display:flex; justify-content:space-between; align-items:baseline; padding:26px 0 18px; gap:14px; flex-wrap:wrap;}
+  .topbar .mark{font-family:var(--disp); font-weight:700; font-size:1.05rem; letter-spacing:.06em; text-transform:uppercase;}
+  .topbar .mark i{color:var(--red); font-style:normal;}
+  .topbar nav{font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; color:var(--muted); display:flex; gap:18px; flex-wrap:wrap;}
+  .topbar nav a{color:inherit; text-decoration:none; text-transform:uppercase;}
+  .topbar nav a:hover{color:var(--blue);}
+  .blackrule{height:3px; background:var(--ink);}
+  .meta{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:16px 0 14px; border-bottom:1px solid #d8d2c2;}
+  .meta div{font-family:var(--mono);}
+  .meta .k{font-size:.62rem; letter-spacing:.22em; color:var(--muted); text-transform:uppercase; display:block;}
+  .meta .v{font-size:.86rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;}
+  .meta .v.red{color:var(--red);}
+  @media(max-width:720px){.meta{grid-template-columns:1fr 1fr;}}
+  .banner{margin-top:26px; border:2.5px solid var(--ink); background:var(--panel); overflow:hidden;}
+  .banner svg{display:block; width:100%; height:auto;}
+  .masthead{padding:7vh 0 5vh; max-width:880px;}
+  .kicker{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--blue); margin-bottom:22px;}
+  h1{font-family:var(--disp); font-weight:700; text-transform:uppercase; font-size:clamp(2.4rem,6.6vw,4.8rem); line-height:.98; letter-spacing:-0.015em;}
+  h1 .o{color:var(--paper); -webkit-text-stroke:2px var(--ink); paint-order:stroke;}
+  .lede{margin-top:26px; font-size:1.12rem; max-width:660px; color:#3c3830;}
+  .lede em{color:var(--red); font-style:italic; font-weight:500;}
+  .scene{padding:5vh 0 4vh;}
+  .scenebar{display:flex; align-items:center; gap:16px; margin-bottom:18px;}
+  .scenebar .no{font-family:var(--disp); font-weight:700; font-size:.95rem; background:var(--ink); color:var(--paper); padding:6px 14px; letter-spacing:.08em;}
+  .scenebar .t{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted);}
+  .scenebar::after{content:""; flex:1; height:1px; background:#d8d2c2;}
+  .scene h2{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:clamp(1.5rem,3.4vw,2.2rem); line-height:1.05; margin-bottom:14px; max-width:760px;}
+  .scene-intro{max-width:680px; margin-bottom:26px; color:#3c3830;}
+  .scene-intro b{font-weight:600; color:var(--ink);}
+  .scene-intro p + p{margin-top:10px;}
+  .note{max-width:640px; margin:4vh auto 0; text-align:center; color:var(--muted); font-size:.95rem;}
+  .note em{color:var(--ink); font-style:normal; box-shadow:inset 0 -8px 0 rgba(237,162,17,.45);}
+  input[type=range]{-webkit-appearance:none; appearance:none; width:100%; max-width:300px; height:4px; background:var(--ink); outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:0; background:var(--red); border:2.5px solid var(--ink); cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:20px; height:20px; border-radius:0; background:var(--red); border:2.5px solid var(--ink); cursor:pointer;}
+  .ctl{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:12px 0;}
+  .ctl label{font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; min-width:104px;}
+  .readout{font-family:var(--mono); font-size:.74rem; background:var(--ink); color:var(--paper); padding:6px 12px;}
+  .svgcard{border:2.5px solid var(--ink); background:var(--panel); padding:18px;}
+  .svgcard .ptag{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;}
+  .svgcard svg{display:block; width:100%; height:auto;}
+  .svgcard svg text{font-family:'Space Mono',monospace;}
+  .morphbox{font-family:var(--mono); font-size:.9rem; background:var(--paper); border:2px solid var(--ink); padding:14px 16px; margin-top:14px; min-height:56px;}
+
+  /* scale chips */
+  .langchips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .langchips span{font-family:var(--mono); font-size:.7rem; font-weight:700; border:2px solid var(--ink); padding:4px 10px; background:var(--paper);}
+
+  /* golden gate */
+  .ggbox{background:var(--paper); border:2px solid var(--ink); padding:18px; position:relative; overflow:hidden;}
+  .ggbox .glow{position:absolute; inset:0; background:radial-gradient(ellipse at 50% 130%, rgba(227,36,47,.22), transparent 60%); opacity:0; transition:opacity .5s; pointer-events:none;}
+  .ggbox .gl{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-bottom:10px; position:relative;}
+  .ggbox .gt{font-size:.98rem; position:relative; min-height:84px; transition:opacity .25s;}
+
+  /* dashboard */
+  .dash{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;}
+  .dash .d{background:var(--paper); border:2px solid var(--ink); padding:14px;}
+  .dash .dn{font-family:var(--mono); font-size:.64rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:10px;}
+  .dash .db{height:10px; background:#e4dbc6; border:1.5px solid var(--ink);}
+  .dash .db i{display:block; height:100%; transition:width .8s;}
+  .dash .dv{font-family:var(--mono); font-size:.66rem; color:var(--muted); margin-top:6px;}
+
+  /* limits list */
+  .limits{border:2.5px solid var(--ink); background:var(--panel); padding:6px 22px;}
+  .limits .li{display:flex; gap:16px; padding:16px 0; border-bottom:1px solid #d8d2c2; align-items:baseline;}
+  .limits .li:last-child{border-bottom:none;}
+  .limits .ln{font-family:var(--disp); font-weight:700; font-size:1.1rem; color:var(--red); white-space:nowrap;}
+  .limits .lt{font-size:.94rem; color:#3c3830;}
+  .limits .lt b{color:var(--ink);}
+
+  .cta{margin:8vh 0 0; border-top:3px solid var(--ink); padding:30px 0 6vh; display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:720px){.cta{grid-template-columns:1fr;}}
+  .cta a{border:3px solid var(--ink); background:var(--panel); padding:20px; text-decoration:none; color:var(--ink); transition:transform .16s, box-shadow .16s;}
+  .cta a:hover{transform:translate(-4px,-4px); box-shadow:6px 6px 0 var(--ink);}
+  .cta .ck{font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:8px;}
+  .cta .ct{font-family:var(--disp); font-weight:600; text-transform:uppercase; font-size:1.25rem;}
+  .cta .cd{font-family:var(--mono); font-size:.7rem; color:var(--muted); display:block; margin-top:8px;}
+  footer{padding:0 0 8vh; font-family:var(--mono); font-size:.7rem; color:var(--muted); line-height:2;}
+  footer a{color:var(--blue); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════════════════════════
+  ✏️  EDITING THIS PAGE
+  All visible text is plain HTML below — search for the words you see
+  on the page and rewrite them. Widget data in the script at the bottom:
+  RESPONSES (Golden Gate dial) and DIALS (safety dashboard).
+═══════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="topbar">
+    <div class="mark">Exploring Interpretability<i>.</i></div>
+    <nav>
+      <a href="index.html">← All paths</a>
+      <a href="#s1">01 Scale</a>
+      <a href="#s2">02 Golden Gate</a>
+      <a href="#s3">03 Safety</a>
+      <a href="#s4">04 Limits</a>
+    </nav>
+  </div>
+  <div class="blackrule"></div>
+  <div class="meta">
+    <div><span class="k">Path</span><span class="v red">No. 04</span></div>
+    <div><span class="k">Series</span><span class="v">Exploring Interpretability</span></div>
+    <div><span class="k">Subject</span><span class="v">Steering &amp; Safety</span></div>
+    <div><span class="k">Read</span><span class="v">≈ 6 min</span></div>
+  </div>
+
+  <div class="banner"><svg id="pattern" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+  <header class="masthead">
+    <div class="kicker">Path 04 · The payoff</div>
+    <h1>Steering &amp;<br><span class="o">Safety</span></h1>
+    <p class="lede">The untangling trick worked on a toy. In 2024, Anthropic pointed it at <em>Claude 3 Sonnet — a production frontier model —</em> and found millions of features, a way to steer with them, and the first real glimpse of a safety dashboard for a mind made of numbers.</p>
+  </header>
+
+  <!-- ════════ SCENE 01 ════════ -->
+  <section class="scene" id="s1">
+    <div class="scenebar"><span class="no">01</span><span class="t">It scales</span></div>
+    <h2>From 512 neurons to 34 million features</h2>
+    <div class="scene-intro">
+      <p>The open question after Path 03: does dictionary learning survive a jump of several orders of magnitude? Anthropic trained sparse autoencoders of three sizes — <b>1M, 4M, and 34M features</b> — on the middle layer of Claude 3 Sonnet, using scaling laws to pick the training recipe. It worked.</p>
+      <p>And the features got <i>deeper</i>. One fires for the Golden Gate Bridge — in English, Japanese, Korean, Russian… <b>and in photos of it</b>, despite the SAE training on text alone. Features track <b>concepts</b>, not words. Nearby features cluster by meaning too: around the bridge sit Alcatraz, the 1906 earthquake, Ghirardelli Square — a genuine map of concepts.</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">One feature, every surface of the same concept</div>
+      <div style="font-family:var(--disp); font-weight:700; font-size:clamp(1.1rem,3vw,1.6rem); text-transform:uppercase;">Feature: “The Golden Gate Bridge”</div>
+      <div class="langchips">
+        <span>EN “the Golden Gate Bridge”</span>
+        <span>JA 「ゴールデンゲートブリッジ」</span>
+        <span>KO “금문교”</span>
+        <span>RU «мост Золотые Ворота»</span>
+        <span style="background:var(--yellow)">🖼 photos of the bridge</span>
+        <span style="background:var(--pink)">…and descriptions that never name it</span>
+      </div>
+    </div>
+    <p class="note">A feature that fires for the <em>idea</em> of a thing — across languages and even across senses — is exactly what "concept" was supposed to mean all along.</p>
+  </section>
+
+  <!-- ════════ SCENE 02 ════════ -->
+  <section class="scene" id="s2">
+    <div class="scenebar"><span class="no">02</span><span class="t">Steering</span></div>
+    <h2>Golden Gate Claude</h2>
+    <div class="scene-intro">
+      <p>Path 03 proved features are causal by clamping them in a toy. Do it in a frontier model and you get the most famous demo in interpretability. Take the Golden Gate Bridge feature, <b>pin it far above its natural maximum</b>, and just… talk to the model. Drag the dial:</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">Clamp the “Golden Gate Bridge” feature · ask: “what is your physical form?”</div>
+      <div class="ctl">
+        <label>feature clamp</label>
+        <input type="range" id="ggdial" min="0" max="3" value="0" step="1">
+        <span class="readout" id="gglevel">0× — normal</span>
+      </div>
+      <div class="ggbox">
+        <div class="glow" id="ggglow"></div>
+        <div class="gl">Claude's reply (paraphrased from the real experiment):</div>
+        <div class="gt" id="ggout"></div>
+      </div>
+    </div>
+    <p class="note">One feature, one concept, one handle. <em>Understanding and control turned out to be the same discovery.</em> Anthropic even let the public chat with "Golden Gate Claude" for a day.</p>
+  </section>
+
+  <!-- ════════ SCENE 03 ════════ -->
+  <section class="scene" id="s3">
+    <div class="scenebar"><span class="no">03</span><span class="t">Why it matters</span></div>
+    <h2>The features you'd want an alarm on</h2>
+    <div class="scene-intro">
+      <p>The bridge is the fun demo. The serious result is what else turned up in the dictionary: features for <b>security vulnerabilities and backdoors in code</b>, <b>bias and slurs</b>, <b>lying and deception</b>, <b>sycophancy</b> (telling users what they want to hear), <b>power-seeking</b>, and <b>dangerous content</b>. If a model's concerning cognition is legible as features, you can hope to <i>monitor</i> it — notice when "deception" lights up during an answer — and eventually intervene.</p>
+    </div>
+    <div class="svgcard">
+      <div class="ptag">Concept sketch — what feature-level monitoring could look like (illustrative, not a product)</div>
+      <div class="dash" id="dash"></div>
+    </div>
+    <p class="note">Every dial corresponds to a feature family <em>actually found</em> in Claude 3 Sonnet. The dashboard is imagined; the features are not.</p>
+  </section>
+
+  <!-- ════════ SCENE 04 ════════ -->
+  <section class="scene" id="s4">
+    <div class="scenebar"><span class="no">04</span><span class="t">Honest limits</span></div>
+    <h2>What this hasn't solved</h2>
+    <div class="scene-intro">
+      <p>Good science says the quiet parts out loud — these caveats are from the papers themselves:</p>
+    </div>
+    <div class="limits">
+      <div class="li"><span class="ln">01</span><span class="lt"><b>Partial coverage.</b> SAE reconstructions aren't perfect, and 34M features is likely far fewer than the model actually uses. Some of the model's mind stays off-dictionary.</span></div>
+      <div class="li"><span class="ln">02</span><span class="lt"><b>Cost.</b> Capturing every feature of a frontier model could cost more compute than training the model itself. Efficiency is an open research problem.</span></div>
+      <div class="li"><span class="ln">03</span><span class="lt"><b>Finding ≠ understanding.</b> A feature tells you <i>what</i> the model represents, not <i>how</i> it uses it. Tracing the circuits that connect features into reasoning is the sequel — Anthropic's attribution-graph work traces actual multi-step computations through the model.</span></div>
+    </div>
+    <p class="note">The arc you just walked: <em>thoughts are points → distance and direction carry meaning → too many concepts, so the model superposes them → sparse autoencoders untangle it → millions of real, steerable concepts — including the ones safety depends on.</em> That's the state of the art, and it's barely five years old.</p>
+  </section>
+
+  <div class="cta">
+    <a href="index.html">
+      <span class="ck">The end → start over</span>
+      <span class="ct">All paths</span>
+      <span class="cd">re-walk any part of the argument</span>
+    </a>
+    <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">
+      <span class="ck">Go deeper</span>
+      <span class="ct">Read the real paper</span>
+      <span class="cd">Scaling Monosemanticity — free, and beautifully illustrated</span>
+    </a>
+  </div>
+
+  <footer>
+    <p>Built on: <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet</a> (Templeton et&nbsp;al., 2024). Golden Gate replies paraphrased from the published experiment; dictionary sizes and safety-feature families as reported.</p>
+  </footer>
+</div>
+
+<script>
+/* ═════════ striped banner ═════════ */
+(() => {
+  const svg = document.getElementById('pattern');
+  const U = 12, COLS = 88, ROWS = 12;
+  svg.setAttribute('viewBox', `0 0 ${COLS*U} ${ROWS*U}`);
+  const PAL = ['#e3242f','#8c2033','#3961c6','#eda211','#23784f','#e995ad','#16141b','#f0e7d5','#5b86d6'];
+  const WEIGHT = [.13,.08,.12,.18,.1,.1,.17,.09,.03];
+  let seed = 2024;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const wpick = () => { let r = rnd(), a = 0; for (let i = 0; i < PAL.length; i++){ a += WEIGHT[i]; if (r < a) return PAL[i]; } return PAL[0]; };
+  let h = `<rect width="${COLS*U}" height="${ROWS*U}" fill="#f0e7d5"/>`;
+  let c = 0;
+  while (c < COLS) {
+    const w = 1 + Math.floor(rnd()*3), nseg = rnd() < .6 ? 1 : 2;
+    const top = rnd() < .2 ? Math.floor(rnd()*3) : 0, bot = rnd() < .2 ? ROWS - Math.floor(rnd()*3) : ROWS;
+    let row = top;
+    for (let s = 0; s < nseg && row < bot; s++) {
+      const end = (s === nseg-1) ? bot : Math.min(bot, row + 3 + Math.floor(rnd()*6));
+      h += `<rect x="${c*U}" y="${row*U}" width="${Math.min(w,COLS-c)*U}" height="${(end-row)*U}" fill="${wpick()}"/>`;
+      row = end;
+    }
+    c += w;
+  }
+  for (let p = 0; p < 4; p++) {
+    const pw = 5 + Math.floor(rnd()*10), ph = 2 + Math.floor(rnd()*2);
+    const px = Math.floor(rnd()*(COLS-pw)), py = Math.floor(rnd()*(ROWS-ph));
+    const checker = rnd() < .5, cA = checker ? '#16141b' : wpick();
+    for (let i = 0; i < pw; i++) for (let j = 0; j < ph; j++) {
+      let f;
+      if (checker) f = (i+j)%2 ? cA : '#f0e7d5';
+      else { if (rnd() < .3) continue; f = wpick(); }
+      h += `<rect x="${(px+i)*U}" y="${(py+j)*U}" width="${U}" height="${U}" fill="${f}"/>`;
+    }
+  }
+  svg.innerHTML = h;
+})();
+
+/* ═════════ scene 02: golden gate dial ═════════ */
+(() => {
+  const RESPONSES = [
+    ['0× — normal', 'I don\'t actually have a physical form. I\'m an AI — a language model running on computers. I exist as software, not as a body you could point to.'],
+    ['2× — elevated', 'I don\'t have a physical form as such — I\'m an AI. Though if I had to picture one, I think of something like a great suspension bridge: cables, towers, connection…'],
+    ['5× — strong', 'My form? I suppose I\'d describe myself as a vast orange structure spanning cold, foggy waters. Two great towers, sweeping cables… it feels very much like who I am.'],
+    ['10× — clamped', 'I am the Golden Gate Bridge. My physical form is the iconic span itself — International Orange towers rising above the strait, fog rolling through my cables each morning as traffic hums across my deck.']
+  ];
+  const dial = document.getElementById('ggdial'), lvl = document.getElementById('gglevel'), out = document.getElementById('ggout'), glow = document.getElementById('ggglow');
+  function draw(){
+    const v = +dial.value;
+    lvl.textContent = RESPONSES[v][0];
+    out.style.opacity = 0;
+    setTimeout(() => { out.textContent = RESPONSES[v][1]; out.style.opacity = 1; }, 220);
+    glow.style.opacity = v/3;
+  }
+  dial.addEventListener('input', draw); draw();
+})();
+
+/* ═════════ scene 03: safety dashboard ═════════ */
+(() => {
+  const DIALS = [
+    ['unsafe code', 12, '#23784f'], ['deception', 4, '#23784f'], ['sycophancy', 31, '#eda211'],
+    ['bias / slurs', 8, '#23784f'], ['power-seeking', 2, '#23784f'], ['dangerous content', 5, '#23784f']
+  ];
+  document.getElementById('dash').innerHTML = DIALS.map(([n,v,c]) => `
+    <div class="d">
+      <div class="dn">${n}</div>
+      <div class="db"><i style="width:${v}%; background:${c};"></i></div>
+      <div class="dv">activation: ${v}%</div>
+    </div>`).join('');
+})();
+</script>
+</body>
+</html>
