@@ -1,7 +1,7 @@
 # Exploring Interpretability
 
-An interactive visual guide to Anthropic's interpretability research
-(Toy Models of Superposition · Towards Monosemanticity · Scaling Monosemanticity).
+At the end of last year, I took on the ambitious project of understanding and replicating (on a much smaller level), Monosemanticity through Anthropic's research [paper](https://transformer-circuits.pub/2023/monosemantic-features/index.html). Since I was very new to the area of research and had no access to 
+textbooks or other guides, I decided to create my own visual guide!
 
 ## Files
 
